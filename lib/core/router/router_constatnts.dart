@@ -1,5 +1,8 @@
-const String routerNameSplash = "splash";
-const String routerNameLogin = "login";
+enum RouterName { splash, login, home }
+
+// const String routerNameSplash = "splash";
+// const String routerNameLogin = "login";
+// const String routerNameMain = "main";
 
 String makePath(name) {
   return "/$name";

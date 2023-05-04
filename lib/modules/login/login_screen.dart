@@ -4,18 +4,19 @@ import 'package:likealocal_app_platform/config/models/api_login_model.dart';
 import 'package:likealocal_app_platform/config/types/login_type.dart';
 import 'package:likealocal_app_platform/core/auth/providers/auth_provider.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends ConsumerStatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _LoginPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authProviderWatch = ref.watch(authProvider);
     final mgs = ref.watch(authProvider).getMessage();
+
     return SafeArea(
       child: Column(
         children: [

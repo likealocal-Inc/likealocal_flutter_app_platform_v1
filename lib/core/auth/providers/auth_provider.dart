@@ -56,13 +56,15 @@ class AuthNotifier extends ChangeNotifier {
         break;
     }
 
+    SharedPreferences sharedPreference = await SharedPreferences.getInstance();
+
     /// 로그인 처리
     if (res.success) {
       // 로그인 성공
-      print('로그인성공');
+      sharedPreference.setBool(SharedPreferencesKeys.isLoginKey.name, true);
     } else {
       // 로그인 실패
-      print('로그인실패');
+      sharedPreference.setBool(SharedPreferencesKeys.isLoginKey.name, false);
     }
 
     notifyListeners();

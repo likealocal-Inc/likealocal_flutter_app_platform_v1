@@ -1,10 +1,20 @@
-import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
+
 import 'package:likealocal_app_platform/core/auth/providers/auth_provider.dart';
 import 'package:likealocal_app_platform/core/router/router_provider.dart';
 import 'package:likealocal_app_platform/core/theme/theme_provider.dart';
+
+var logger = Logger(
+  printer: PrettyPrinter(),
+);
+
+var loggerNoStack = Logger(
+  printer: PrettyPrinter(methodCount: 0),
+);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
