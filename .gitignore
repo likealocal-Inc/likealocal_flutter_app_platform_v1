@@ -45,3 +45,6 @@ app.*.map.json
 
 /server
 pubspec.lock
+ios/Podfile.lock
+ios/Runner.xcodeproj/project.pbxproj
+
