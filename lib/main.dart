@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
-import 'package:likealocal_app_platform/core/auth/providers/auth_provider.dart';
+import 'package:likealocal_app_platform/modules/auth/providers/auth_provider.dart';
 import 'package:likealocal_app_platform/core/router/router_provider.dart';
 import 'package:likealocal_app_platform/core/theme/theme_provider.dart';
 
@@ -50,6 +50,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     return MaterialApp.router(
       title: 'Likealocal APP',
+      debugShowCheckedModeBanner: false,
       theme: FlexThemeData.light(scheme: FlexScheme.gold, useMaterial3: true),
       darkTheme: FlexThemeData.dark(scheme: FlexScheme.red, useMaterial3: true),
       themeMode:

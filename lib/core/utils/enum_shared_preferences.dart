@@ -5,7 +5,9 @@ enum SharedPreferencesKeys {
   localeKey,
   themeKey,
   isLoginKey,
+  emailKey,
+
   tokenKey,
   userIdKey,
-  emailKey,
+  userEmailKey,
 }
