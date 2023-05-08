@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:likealocal_app_platform/modules/auth/providers/auth_provider.dart';
-import 'package:likealocal_app_platform/modules/home/views/pages/bottom_tab_bar_pages.dart';
+import 'package:likealocal_app_platform/modules/home/views/pages/bottom_tab_bar_utils.dart';
 import 'package:likealocal_app_platform/modules/home/views/widgets/app_bar_widget.dart';
 
 /// 홈페이지
@@ -29,18 +28,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBarWidget.get(ref, "Home Screen"),
       body: IndexedStack(
         index: _pageIndex,
-        children: BottomTabBarPages.pages,
+        children: BottomTabBarUtils.getpages(),
       ),
       bottomNavigationBar: CupertinoTabBar(
         currentIndex: _pageIndex,
         onTap: onPageChange,
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(
-                  _pageIndex == 0 ? Icons.home_filled : Icons.home_outlined)),
-          BottomNavigationBarItem(
-              icon: Icon(_pageIndex == 1 ? Icons.map : Icons.map_outlined)),
-        ],
+        items: BottomTabBarUtils.getIcons(_pageIndex),
       ),
     );
   }

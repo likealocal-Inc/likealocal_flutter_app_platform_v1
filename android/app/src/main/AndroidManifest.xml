@@ -1,9 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.likealocal_app_platform">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    
    <application
         android:label="likealocal_app_platform"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        
+        <meta-data android:name="com.naver.maps.map.CLIENT_ID" android:value="01gns67yau" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
