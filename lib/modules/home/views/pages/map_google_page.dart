@@ -1,250 +1,342 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
 
-/// 홈페이지
+import 'package:likealocal_app_platform/core/utils/geolocator_utils.dart';
+import 'package:likealocal_app_platform/core/utils/uuid.dart';
+import 'package:likealocal_app_platform/modules/home/models/map_position.dart';
+import 'package:likealocal_app_platform/modules/home/provider/google_map_provider.dart';
+
+enum PathType { start, goal }
+
 class MapGooglePage extends ConsumerStatefulWidget {
   const MapGooglePage({super.key});
 
   @override
-  ConsumerState<MapGooglePage> createState() => _MapGooglePageState();
+  ConsumerState<MapGooglePage> createState() => _GoogleMapState();
 }
 
-class _MapGooglePageState extends ConsumerState<MapGooglePage> {
-  final Completer<GoogleMapController> _controller =
-      Completer<GoogleMapController>();
-
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
-
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: GoogleMapRouteExample(),
-      // floatingActionButton: FloatingActionButton.extended(
-      //   onPressed: _goToTheLake,
-      //   label: const Text('To the lake!'),
-      //   icon: const Icon(Icons.directions_boat),
-      // ),
-    );
-    // body: GoogleMap(
-    //   mapType: MapType.hybrid,
-    //   initialCameraPosition: _kGooglePlex,
-    //   onMapCreated: (GoogleMapController controller) {
-    //     _controller.complete(controller);
-    //   },
-    // ),
-    // floatingActionButton: FloatingActionButton.extended(
-    //   onPressed: _goToTheLake,
-    //   label: const Text('To the lake!'),
-    //   icon: const Icon(Icons.directions_boat),
-    // ),
-    // );
-  }
-
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-  }
-}
-
-class GoogleMapRouteExample extends StatefulWidget {
-  const GoogleMapRouteExample({super.key});
-
-  @override
-  _GoogleMapRouteExampleState createState() => _GoogleMapRouteExampleState();
-}
-
-class _GoogleMapRouteExampleState extends State<GoogleMapRouteExample> {
+class _GoogleMapState extends ConsumerState<MapGooglePage> {
   late GoogleMapController _controller;
-  final TextEditingController _departureController = TextEditingController();
-  final TextEditingController _destinationController = TextEditingController();
-  final Set<Polyline> _polylines = {};
-  final LatLng _initialPosition =
-      const LatLng(37.42796133580664, -122.085749655962);
 
-  // final Completer<GoogleMapController> _controller =
-  //     Completer<GoogleMapController>();
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  final TextEditingController _startController = new TextEditingController();
+  final TextEditingController _goalController = new TextEditingController();
+
+  late LatLng _initialPosition;
+
+  setLocation() async {
+    Position myPosition = await GeolocatorUtils.getMyGeolocator();
+    setState(() {});
+    _initialPosition = LatLng(myPosition.latitude, myPosition.longitude);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setLocation();
+  }
+
+  void onError(PlacesAutocompleteResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response.errorMessage!)),
+    );
+  }
+
+  Future<MapPosition?> _handlePressButton() async {
+    Prediction? p = await PlacesAutocomplete.show(
+        context: context,
+        apiKey: dotenv.env["GOOGLE.MAP.KEY.IOS"]!,
+        onError: onError,
+        mode: Mode.overlay,
+        language: "en",
+        decoration: InputDecoration(
+          hintText: 'Search',
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: const BorderSide(
+              color: Colors.white,
+            ),
+          ),
+        ),
+        components: [Component(Component.country, "kr")],
+        logo: const Text(''));
+
+    MapPosition? position = await displayPrediction(p);
+    return position;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final googleMapProviderWatch = ref.watch(googleMapProvider);
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: _departureController,
-            decoration: const InputDecoration(
-              labelText: 'Departure',
-              border: OutlineInputBorder(),
-            ),
-          ),
+        TextField(
+          controller: _startController,
+          onTap: () async {
+            await setMapMarkerAndMove(
+                googleMapProviderWatch, _startController, PathType.start);
+          },
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: _destinationController,
-            decoration: const InputDecoration(
-              labelText: 'Destination',
-              border: OutlineInputBorder(),
-            ),
-          ),
+        TextField(
+          controller: _goalController,
+          onTap: () async {
+            await setMapMarkerAndMove(
+                googleMapProviderWatch, _goalController, PathType.goal);
+          },
         ),
+        // Expanded(
+        //   child: CustomSearchScaffold(
+        //     callback: (MapPosition position) {
+        //       googleMapProviderWatch.setStartPosition(position);
+        //     },
+        //   ),
+        // ),
+        // Expanded(
+        //     child: Text(googleMapProviderWatch.startPosition.lat.toString())),
+        // Expanded(
+        //   child: CustomSearchScaffold(
+        //     callback: (MapPosition position) {
+        //       googleMapProviderWatch.setGoalPosition(position);
+        //     },
+        //   ),
+        // ),
         ElevatedButton(
-          onPressed: () async {},
-          child: const Text('Get Route'),
+          onPressed: () {},
+          child: const Text('길찾기'),
         ),
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(10),
             child: GoogleMap(
-              mapType: MapType.hybrid,
-              // initialCameraPosition: _kGooglePlex,
+              zoomGesturesEnabled: true,
+              mapType: MapType.normal,
               onMapCreated: (GoogleMapController controller) {
-                // _controller.complete(controller);
-                _controller = controller;
+                setState(() {
+                  _controller = controller;
+                });
               },
-
-              // onMapCreated: _onMapCreated,
               initialCameraPosition:
-                  CameraPosition(target: _initialPosition, zoom: 11),
-              polylines: _polylines,
+                  CameraPosition(target: _initialPosition, zoom: 5),
+              markers: markers.values.toSet(),
             ),
           ),
         ),
       ],
     );
-    //     floatingActionButton: FloatingActionButton.extended(
-    //   onPressed: _goToTheLake,
-    //   label: const Text('To the lake!'),
-    //   icon: const Icon(Icons.directions_boat),
-    // )
   }
 
-  // void _fetchRoute() async {
-  //   LatLng? start = await _getLatLngFromAddress(_departureController.text);
-  //   LatLng? goal = await _getLatLngFromAddress(_destinationController.text);
+  Future<void> updateCameraLocation(
+    LatLng source,
+    LatLng destination,
+    GoogleMapController mapController,
+  ) async {
+    LatLngBounds bounds;
 
-  //   if (start != null && goal != null) {
-  //     final path = await getDirections(start, goal);
-  //     setState(() {
-  //       _polylines.add(Polyline(
-  //         polylineId: PolylineId('route'),
-  //         points: path,
-  //         color: Colors.blue,
-  //         width: 5,
-  //       ));
-  //       _controller.animateCamera(
-  //         CameraUpdate.newLatLngBounds(_boundsFromLatLngList(path), 50),
-  //       );
-  //     });
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-  //       content: Text('Unable to find route'),
-  //     ));
-  //   }
-  // }
+    if (source.latitude > destination.latitude &&
+        source.longitude > destination.longitude) {
+      bounds = LatLngBounds(southwest: destination, northeast: source);
+    } else if (source.longitude > destination.longitude) {
+      bounds = LatLngBounds(
+          southwest: LatLng(source.latitude, destination.longitude),
+          northeast: LatLng(destination.latitude, source.longitude));
+    } else if (source.latitude > destination.latitude) {
+      bounds = LatLngBounds(
+          southwest: LatLng(destination.latitude, source.longitude),
+          northeast: LatLng(source.latitude, destination.longitude));
+    } else {
+      bounds = LatLngBounds(southwest: source, northeast: destination);
+    }
 
-  // Future<LatLng?> _getLatLngFromAddress(String address) async {
-  //   final response = await http.get(Uri.parse(
-  //       'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeQueryComponent(address)}&key=AIzaSyDlqOtOYYlsDxiuRPacA2Q1DVb_q9nA29w'));
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
 
-  //   if (response.statusCode == 200) {
-  //     final jsonResponse = json.decode(response.body);
-  //     if (jsonResponse['status'] == 'OK') {
-  //       final location = jsonResponse['results'][0]['geometry']['location'];
-  //       return LatLng(location['lat'], location['lng']);
-  //     } else {
-  //       return null;
-  //     }
-  //   } else {
-  //     throw Exception('Failed to fetch geocoding data');
-  //   }
-  // }
+    return checkCameraLocation(cameraUpdate, mapController);
+  }
 
-  // Future<List<LatLng>> getDirections(LatLng start, LatLng goal) async {
-  //   final response = await http.get(Uri.parse(
-  //       'https://maps.googleapis.com/maps/api/directions/json?origin=${start.latitude},${start.longitude}&destination=${goal.latitude},${goal.longitude}&key=AIzaSyDlqOtOYYlsDxiuRPacA2Q1DVb_q9nA29w'));
+  Future<void> checkCameraLocation(
+      CameraUpdate cameraUpdate, GoogleMapController mapController) async {
+    mapController.animateCamera(cameraUpdate);
+    LatLngBounds l1 = await mapController.getVisibleRegion();
+    LatLngBounds l2 = await mapController.getVisibleRegion();
 
-  //   if (response.statusCode == 200) {
-  //     final jsonResponse = json.decode(response.body);
-  //     if (jsonResponse['status'] == 'OK') {
-  //       final points = jsonResponse['routes'][0]['overview_polyline']['points'];
-  //       return decodePolyline(points);
-  //     } else {
-  //       throw Exception('Failed to fetch directions');
-  //     }
-  //   } else {
-  //     throw Exception('Failed to fetch directions data');
-  //   }
-  // }
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) {
+      return checkCameraLocation(cameraUpdate, mapController);
+    }
+  }
 
-  // List<LatLng> decodePolyline(String encoded) {
-  //   List<LatLng> points = [];
-  //   int index = 0, len = encoded.length;
-  //   int lat = 0, lng = 0;
+  Future<void> setMapMarkerAndMove(GoogleMapProvider googleMapProviderWatch,
+      TextEditingController controller, PathType type) async {
+    MapPosition? position = await _handlePressButton();
+    var address = position!.desc!;
+    controller.text = address;
+    position.desc = address;
+    switch (type) {
+      case PathType.start:
+        googleMapProviderWatch.setStartPosition(position);
+        break;
+      case PathType.goal:
+        googleMapProviderWatch.setGoalPosition(position);
+        break;
+    }
 
-  //   while (index < len) {
-  //     int shift = 0, result = 0;
-  //     int c;
-  //     do {
-  //       c = encoded.codeUnitAt(index++) - 63;
-  //       result |= (c & 0x1F) << shift;
-  //       shift += 5;
-  //     } while (c >= 0x20);
-  //     int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-  //     lat += dlat;
+    MarkerId markerId = MarkerId(type.name);
+    final marker = Marker(
+      markerId: markerId,
+      position: LatLng(position.lat!, position.lng!),
+      infoWindow: InfoWindow(title: type.name, snippet: 'address'),
+    );
 
-  //     shift = 0;
-  //     result = 0;
-  //     do {
-  //       c = encoded.codeUnitAt(index++) - 63;
-  //       result |= (c & 0x1F) << shift;
-  //       shift += 5;
-  //     } while (c >= 0x20);
-  //     int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-  //     lng += dlng;
+    markers[markerId] = marker;
+    _controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: LatLng(position.lat!, position.lng!), zoom: 10),
+      ),
+    );
 
-  //     LatLng p = LatLng(lat / 1E5, lng / 1E5);
-  //     points.add(p);
-  //   }
+    MapPosition startP = await googleMapProviderWatch.getStartPosition();
+    MapPosition goalP = await googleMapProviderWatch.getGoalPosition();
+    await updateCameraLocation(
+        startP.getLatLng(), goalP.getLatLng(), _controller);
+  }
 
-  //   return points;
-  // }
+  Future<void> mapMarkAndMove(GoogleMapProvider googleMapProviderWatch) async {
+    {
+      MapPosition? position = await _handlePressButton();
+      _startController.text = position!.desc!;
+      googleMapProviderWatch.setStartPosition(position);
+      const MarkerId markerId = MarkerId("start");
+      final marker = Marker(
+        markerId: markerId,
+        position: LatLng(position.lat!, position.lng!),
+        infoWindow: const InfoWindow(title: 'start', snippet: 'address'),
+      );
 
-  // LatLngBounds _boundsFromLatLngList(List<LatLng> list) {
-  //   late double x0, x1, y0, y1;
-  //   for (LatLng latLng in list) {
-  //     if (x0 == null) {
-  //       x0 = x1 = latLng.latitude;
-  //       y0 = y1 = latLng.longitude;
-  //     } else {
-  //       if (latLng.latitude > x1) x1 = latLng.latitude;
-  //       if (latLng.latitude < x0) x0 = latLng.latitude;
-  //       if (latLng.longitude > y1) y1 = latLng.longitude;
-  //       if (latLng.longitude < y0) y0 = latLng.longitude;
-  //     }
-  //   }
-  //   return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
-  // }
+      setState(() {});
+      markers[markerId] = marker;
+      _controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+              target: LatLng(position.lat!, position.lng!), zoom: 10),
+        ),
+      );
+    }
+  }
+}
+
+// ignore: must_be_immutable
+class CustomSearchScaffold extends PlacesAutocompleteWidget {
+  Function callback;
+  CustomSearchScaffold({Key? key, required this.callback})
+      : super(
+          key: key,
+          apiKey: dotenv.env["GOOGLE.MAP.KEY.IOS"]!,
+          sessionToken: Uuid().generateV4(delim: "-"),
+          language: "en",
+          components: [Component(Component.country, "kr")],
+        );
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _CustomSearchScaffoldState createState() =>
+      // ignore: no_logic_in_create_state
+      _CustomSearchScaffoldState(callback: callback);
+}
+
+class _CustomSearchScaffoldState extends PlacesAutocompleteState {
+  Function callback;
+  _CustomSearchScaffoldState({
+    required this.callback,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const search = AppBarPlacesAutoCompleteTextField();
+    final result = PlacesAutocompleteResult(
+      onTap: (p) async {
+        MapPosition? position = await displayPrediction(p, context);
+        callback(position);
+      },
+      logo: const Text(''),
+    );
+    return Column(
+      children: [
+        search,
+        Expanded(child: result),
+      ],
+    );
+  }
+
+  @override
+  void onResponseError(PlacesAutocompleteResponse response) {
+    super.onResponseError(response);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response.errorMessage!)),
+    );
+  }
+
+  @override
+  void onResponse(PlacesAutocompleteResponse? response) {
+    super.onResponse(response);
+    if (response != null && response.predictions.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Got answer")),
+      );
+    }
+  }
+
+  Future<MapPosition?> displayPrediction(
+      Prediction? p, BuildContext context) async {
+    if (p != null) {
+      // get detail (lat/lng)
+      GoogleMapsPlaces places = GoogleMapsPlaces(
+        apiKey: dotenv.env["GOOGLE.MAP.KEY.IOS"]!,
+        apiHeaders: await const GoogleApiHeaders().getHeaders(),
+      );
+
+      PlacesDetailsResponse detail =
+          await places.getDetailsByPlaceId(p.placeId!);
+      final lat = detail.result.geometry!.location.lat;
+      final lng = detail.result.geometry!.location.lng;
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text("${p.description} - $lat/$lng")),
+      // );
+
+      MapPosition position =
+          MapPosition(lat: lat, lng: lng, desc: p.description);
+      return position;
+    }
+    return null;
+  }
+}
+
+Future<MapPosition?> displayPrediction(Prediction? p) async {
+  if (p != null) {
+    // get detail (lat/lng)
+    GoogleMapsPlaces places = GoogleMapsPlaces(
+      apiKey: dotenv.env["GOOGLE.MAP.KEY.IOS"]!,
+      apiHeaders: await const GoogleApiHeaders().getHeaders(),
+    );
+
+    PlacesDetailsResponse detail = await places.getDetailsByPlaceId(p.placeId!);
+    final lat = detail.result.geometry!.location.lat;
+    final lng = detail.result.geometry!.location.lng;
+
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(content: Text("${p.description} - $lat/$lng")),
+    // );
+
+    MapPosition position = MapPosition(lat: lat, lng: lng, desc: p.description);
+    return position;
+  }
+  return null;
 }

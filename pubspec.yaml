@@ -11,9 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  naver_map_plugin:
-    git: https://github.com/LBSTECH/naver_map_plugin.git
-
   cupertino_icons: ^1.0.2
   dio: ^5.1.1
   flutter_dotenv: ^5.0.2
@@ -32,6 +29,12 @@ dependencies:
   webview_flutter_wkwebview: ^3.4.2
   path_provider: ^2.0.14
   # naver_map_plugin: ^0.9.6
+  flutter_google_places:
+    git: https://github.com/fluttercommunity/flutter_google_places
+  google_maps_webservice: ^0.0.20-nullsafety.5
+  google_api_headers: ^1.5.0+1
+  location: ^4.4.0
+  geolocator: ^9.0.2
 
 dev_dependencies:
   flutter_test:

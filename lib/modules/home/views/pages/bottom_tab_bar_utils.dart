@@ -10,7 +10,7 @@ class BottomTabBarUtils {
       const HomePage(),
       const MapGooglePage(),
       const MapNaverPage(),
-      const MapWebviewPage()
+      // const MapWebviewPage()
     ];
   }
 

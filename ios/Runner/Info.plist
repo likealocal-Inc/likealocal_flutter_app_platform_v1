@@ -54,13 +54,14 @@
 	<true/>
 	<key>NSAllowsArbitraryLoads</key>
 	<true/>
-
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>[USAGE PERPOSE]</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>[USAGE PERPOSE]</string>
+	
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>[USAGE PERPOSE]</string>
-
+	<string>This app needs access to location when open.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app always needs access to the device's location.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 </dict>
 </plist>
