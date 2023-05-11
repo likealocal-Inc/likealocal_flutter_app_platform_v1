@@ -17,7 +17,6 @@ class _NaverMapWidgetState extends ConsumerState<NaverMapWidget> {
   final TextEditingController _startController = TextEditingController();
   final TextEditingController _goalController = TextEditingController();
   late GoogleMapProvider googleMapProviderWatch;
-  bool isLoadedNaverMap = false;
   // /// 경로 그리기
   drawPathOnMap() async {
     GoogleFindPathMarkers pathMarkers =
@@ -58,7 +57,6 @@ class _NaverMapWidgetState extends ConsumerState<NaverMapWidget> {
                 zoomGesturesEnable: true),
             onMapReady: (controller) {
               _naverMapController = controller;
-              isLoadedNaverMap = true;
             },
             onMapTapped: (point, latLng) {},
             onSymbolTapped: (symbol) {},

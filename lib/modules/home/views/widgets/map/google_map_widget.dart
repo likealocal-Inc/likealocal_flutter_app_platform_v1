@@ -107,7 +107,6 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
               zoomGesturesEnabled: true,
               mapType: MapType.normal,
               onMapCreated: (GoogleMapController controller) {
-                setState(() {});
                 _googleMapController = controller;
               },
               initialCameraPosition:
