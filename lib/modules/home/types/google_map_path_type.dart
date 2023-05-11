@@ -1,0 +1,1 @@
+enum GoogleMapPathType { start, goal }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
@@ -26,6 +27,23 @@ void main() async {
 void init() async {
   /// .env 파일 로드하기
   await dotenv.load(fileName: ".env");
+
+  await NaverMapSdk.instance.initialize(
+      clientId: dotenv.env["NAVER.MAP.CLIENT.ID"]!,
+      onAuthFailed: (err) {
+        print("********* 네이버맵 인증오류 : $err *********");
+        /**
+401	
+- 잘못된 클라이언트 ID 지정
+- 잘못된 클라이언트 유형을 사용
+- 콘솔에 등록된 앱 패키지 이름과 미일치
+429	
+- 콘솔에서 Maps 서비스를 선택하지 않음
+- 사용 한도 초과
+800	
+- 클라이언트 ID 미지정
+           */
+      });
 }
 
 class MyApp extends ConsumerStatefulWidget {

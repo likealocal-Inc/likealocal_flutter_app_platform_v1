@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:likealocal_app_platform/modules/home/views/pages/bottom_tab_bar_utils.dart';
+import 'package:likealocal_app_platform/modules/home/utiles/bottom_tab_bar_utils.dart';
 import 'package:likealocal_app_platform/modules/home/views/widgets/app_bar_widget.dart';
 
 /// 홈페이지

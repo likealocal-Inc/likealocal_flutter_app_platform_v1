@@ -10,7 +10,7 @@ class BottomTabBarUtils {
       const HomePage(),
       const MapGooglePage(),
       const MapNaverPage(),
-      // const MapWebviewPage()
+      const MapWebviewPage()
     ];
   }
 
@@ -19,11 +19,12 @@ class BottomTabBarUtils {
       BottomNavigationBarItem(
           icon: Icon(pageIndex == 0 ? Icons.home_filled : Icons.home_outlined)),
       BottomNavigationBarItem(
-          icon: Icon(pageIndex == 1 ? Icons.map : Icons.map_outlined)),
+          icon:
+              Icon(pageIndex == 1 ? Icons.maps_ugc : Icons.maps_ugc_outlined)),
       BottomNavigationBarItem(
-          icon: Icon(pageIndex == 1 ? Icons.map : Icons.map_outlined)),
+          icon: Icon(pageIndex == 2 ? Icons.map : Icons.map_outlined)),
       BottomNavigationBarItem(
-          icon: Icon(pageIndex == 2
+          icon: Icon(pageIndex == 3
               ? Icons.maps_home_work
               : Icons.maps_home_work_outlined)),
     ];
