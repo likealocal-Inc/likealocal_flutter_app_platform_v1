@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:likealocal_app_platform/core/utils/geolocator_utils.dart';
 import 'package:likealocal_app_platform/modules/home/models/google_find_path_markers.dart';
+import 'package:likealocal_app_platform/modules/home/models/google_map_place_input_model.dart';
 import 'package:likealocal_app_platform/modules/home/models/map_position.dart';
 import 'package:likealocal_app_platform/modules/home/provider/google_map_provider.dart';
 import 'package:likealocal_app_platform/modules/home/provider/home_provider.dart';
@@ -20,6 +21,7 @@ class GoogleMapWidget extends ConsumerStatefulWidget {
 }
 
 class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
+  // ignore: avoid_init_to_null
   late GoogleMapController? _googleMapController = null;
   final GoogleMapUtils googleMapUtils = GoogleMapUtils();
   final GoogleFindPathMarkers _googleFindPathMarkers = GoogleFindPathMarkers();
@@ -40,24 +42,21 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
   }
 
   TextField googleMapPlaceInputWidget(
-      BuildContext context,
-      GoogleMapController? googleMapController,
-      TextEditingController textEditingController,
-      GoogleMapProvider googleMapProviderWatch,
-      GoogleMapPathType googleMapPathType) {
+      GoogleMapPlaceInputModel googleMapPlaceInputModel) {
     return TextField(
-      controller: textEditingController,
+      controller: googleMapPlaceInputModel.textEditingController,
       onTap: () async {
         MapPosition newPosition = await googleMapUtils.setMapMarkerAndMove(
           context,
-          googleMapController,
-          googleMapProviderWatch,
-          textEditingController,
-          googleMapPathType,
+          googleMapPlaceInputModel.googleMapController,
+          googleMapPlaceInputModel.googleMapProviderWatch,
+          googleMapPlaceInputModel.textEditingController,
+          googleMapPlaceInputModel.googleMapPathType,
         );
 
         setState(() {});
-        if (googleMapPathType == GoogleMapPathType.start) {
+        if (googleMapPlaceInputModel.googleMapPathType ==
+            GoogleMapPathType.start) {
           _googleFindPathMarkers.start = newPosition;
         } else {
           _googleFindPathMarkers.goal = newPosition;
@@ -79,19 +78,19 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
     return Column(
       children: [
         googleMapPlaceInputWidget(
-          context,
-          _googleMapController,
-          _startController,
-          googleMapProviderWatch,
-          GoogleMapPathType.start,
+          GoogleMapPlaceInputModel(
+              context: context,
+              googleMapController: _googleMapController,
+              textEditingController: _startController,
+              googleMapProviderWatch: googleMapProviderWatch,
+              googleMapPathType: GoogleMapPathType.start),
         ),
-        googleMapPlaceInputWidget(
-          context,
-          _googleMapController,
-          _goalController,
-          googleMapProviderWatch,
-          GoogleMapPathType.goal,
-        ),
+        googleMapPlaceInputWidget(GoogleMapPlaceInputModel(
+            context: context,
+            googleMapController: _googleMapController,
+            textEditingController: _goalController,
+            googleMapProviderWatch: googleMapProviderWatch,
+            googleMapPathType: GoogleMapPathType.goal)),
         ElevatedButton(
           onPressed: () {
             googleMapProviderWatch.googleFindPathMarkers =

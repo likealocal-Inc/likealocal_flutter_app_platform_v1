@@ -38,11 +38,6 @@ class _NaverMapWidgetState extends ConsumerState<NaverMapWidget> {
     }
     return Column(
       children: [
-        ElevatedButton(
-            onPressed: () async {
-              // drawPathOnMap();
-            },
-            child: const Text("button")),
         TextField(
           enabled: false,
           controller: _startController,
