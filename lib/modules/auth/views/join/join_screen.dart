@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:likealocal_app_platform/modules/auth/models/login/login_api_request_model.dart';
-import 'package:likealocal_app_platform/modules/auth/types/login_type.dart';
 import 'package:likealocal_app_platform/modules/auth/providers/auth_provider.dart';
 
 class JoinScreen extends ConsumerStatefulWidget {

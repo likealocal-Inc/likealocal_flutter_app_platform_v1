@@ -27,7 +27,7 @@ class NaverMapUtils {
     );
     naverMapController.addOverlay(overlay);
 
-    NewPositioin newPosition = NaverMapUtils._findPosition(paths);
+    NaverMapNewPositioin newPosition = NaverMapUtils._findPosition(paths);
 
     final up = NCameraUpdate.withParams(
         zoom: newPosition.newZoom,
@@ -53,7 +53,7 @@ class NaverMapUtils {
   }
 
   /// 경로에 따른 새 위치 찾기
-  static NewPositioin _findPosition(List<NLatLng> paths) {
+  static NaverMapNewPositioin _findPosition(List<NLatLng> paths) {
     double north = paths[0].latitude;
     double south = paths[0].latitude;
     double west = paths[0].longitude;
@@ -83,9 +83,9 @@ class NaverMapUtils {
     var newLng = west + lng / 2;
     var nwqLat = south + lat / 2;
 
-    return NewPositioin(
+    return NaverMapNewPositioin(
         newLat: nwqLat,
         newLng: newLng,
-        newZoom: (latZoom * lngZoom).round() * 1.0);
+        newZoom: (latZoom * lngZoom).round() * 0.98);
   }
 }

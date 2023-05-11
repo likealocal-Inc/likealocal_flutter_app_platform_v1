@@ -4,7 +4,7 @@ import 'package:likealocal_app_platform/modules/home/views/pages/map_google_page
 import 'package:likealocal_app_platform/modules/home/views/pages/map_naver_page.dart';
 import 'package:likealocal_app_platform/modules/home/views/pages/map_webview_page.dart';
 
-class BottomTabBarUtils {
+class HomePageBottomNavigationUtils {
   static List<Widget> getpages() {
     return [
       const HomePage(),

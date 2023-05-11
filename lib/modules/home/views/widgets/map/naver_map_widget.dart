@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:likealocal_app_platform/modules/home/models/google_find_path_markers.dart';
+import 'package:likealocal_app_platform/modules/home/provider/google_map_provider.dart';
 import 'package:likealocal_app_platform/modules/home/utiles/naver_map_utils.dart';
 
 class NaverMapWidget extends ConsumerStatefulWidget {
@@ -14,22 +16,31 @@ class _NaverMapWidgetState extends ConsumerState<NaverMapWidget> {
   late NaverMapController _naverMapController;
   final TextEditingController _startController = TextEditingController();
   final TextEditingController _goalController = TextEditingController();
-
-  /// 경로 그리기
+  late GoogleMapProvider googleMapProviderWatch;
+  bool isLoadedNaverMap = false;
+  // /// 경로 그리기
   drawPathOnMap() async {
-    const start = "127.059151,37.5116828";
-    const goal = "128.1297905,35.205153";
+    GoogleFindPathMarkers pathMarkers =
+        googleMapProviderWatch.googleFindPathMarkers;
 
-    NaverMapUtils.drawPathOnMap(_naverMapController, start, goal);
+    _startController.text = pathMarkers.start.desc;
+    _goalController.text = pathMarkers.goal.desc;
+
+    NaverMapUtils.drawPathOnMap(
+        _naverMapController, pathMarkers.startStr, pathMarkers.goalStr);
   }
 
   @override
   Widget build(BuildContext context) {
+    googleMapProviderWatch = ref.watch(googleMapProvider);
+    if (googleMapProviderWatch.isDataSet == true) {
+      drawPathOnMap();
+    }
     return Column(
       children: [
         ElevatedButton(
             onPressed: () async {
-              drawPathOnMap();
+              // drawPathOnMap();
             },
             child: const Text("button")),
         TextField(
@@ -38,7 +49,7 @@ class _NaverMapWidgetState extends ConsumerState<NaverMapWidget> {
         ),
         TextField(
           enabled: false,
-          controller: _startController,
+          controller: _goalController,
         ),
         Expanded(
           child: NaverMap(
@@ -52,6 +63,7 @@ class _NaverMapWidgetState extends ConsumerState<NaverMapWidget> {
                 zoomGesturesEnable: true),
             onMapReady: (controller) {
               _naverMapController = controller;
+              isLoadedNaverMap = true;
             },
             onMapTapped: (point, latLng) {},
             onSymbolTapped: (symbol) {},

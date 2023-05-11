@@ -2,40 +2,56 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:likealocal_app_platform/core/providers/base_provider.dart';
 import 'package:likealocal_app_platform/core/utils/geolocator_utils.dart';
+import 'package:likealocal_app_platform/modules/home/models/google_find_path_markers.dart';
 import 'package:likealocal_app_platform/modules/home/models/map_position.dart';
 
 final googleMapProvider = ChangeNotifierProvider((ref) => GoogleMapProvider());
 
 class GoogleMapProvider extends BaseProvider {
-  final MapPosition startPosition = MapPosition();
-  final MapPosition goalPosition = MapPosition();
-
+  bool _isDataSet = false;
+  final MapPosition _startPosition = MapPosition();
+  final MapPosition _goalPosition = MapPosition();
+  late GoogleFindPathMarkers _googleFindPathMarkers = GoogleFindPathMarkers();
   @override
   init() {}
 
   Future<MapPosition> getStartPosition() async {
-    if (startPosition.lat == 0) {
+    if (_startPosition.lat == 0) {
       Position position = await GeolocatorUtils.getMyGeolocator();
-      startPosition.fromPosition(position);
+      _startPosition.fromPosition(position);
     }
-    return startPosition;
+    return _startPosition;
   }
 
   getGoalPosition() {
-    return goalPosition;
+    return _goalPosition;
   }
 
   setStartPosition(MapPosition position) {
-    startPosition.lat = position.lat;
-    startPosition.lng = position.lng;
-    startPosition.desc = position.desc;
+    _startPosition.lat = position.lat;
+    _startPosition.lng = position.lng;
+    _startPosition.desc = position.desc;
     notifyListeners();
   }
 
   setGoalPosition(MapPosition position) {
-    goalPosition.lat = position.lat;
-    goalPosition.lng = position.lng;
-    goalPosition.desc = position.desc;
+    _goalPosition.lat = position.lat;
+    _goalPosition.lng = position.lng;
+    _goalPosition.desc = position.desc;
     notifyListeners();
   }
+
+  GoogleFindPathMarkers get googleFindPathMarkers => _googleFindPathMarkers;
+
+  set googleFindPathMarkers(GoogleFindPathMarkers googleFindPathMarkers) {
+    _googleFindPathMarkers = googleFindPathMarkers;
+    notifyListeners();
+  }
+
+  set isDataSet(bool isDataSet) {
+    _isDataSet = isDataSet;
+    notifyListeners();
+  }
+
+  bool get isDataSet => _isDataSet;
 }

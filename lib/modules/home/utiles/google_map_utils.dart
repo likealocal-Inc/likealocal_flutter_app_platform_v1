@@ -62,7 +62,7 @@ class GoogleMapUtils {
     return null;
   }
 
-  Future<Marker> setMapMarkerAndMove(
+  Future<MapPosition> setMapMarkerAndMove(
       BuildContext context,
       GoogleMapController? googleMapController,
       GoogleMapProvider googleMapProviderWatch,
@@ -97,14 +97,12 @@ class GoogleMapUtils {
     MapPosition startP = await googleMapProviderWatch.getStartPosition();
     MapPosition goalP = await googleMapProviderWatch.getGoalPosition();
 
-    if (startP.lat == null || goalP.lat == null) {
-      return marker;
-    } else {
+    if (startP.lat != null && goalP.lat != null) {
       await updateCameraLocation(
           startP.getLatLng(), goalP.getLatLng(), googleMapController);
-
-      return marker;
     }
+    position.marker = marker;
+    return position;
   }
 
   Future<void> updateCameraLocation(

@@ -1,8 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
-import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:likealocal_app_platform/modules/home/utiles/naver_map_utils.dart';
 import 'package:likealocal_app_platform/modules/home/views/widgets/map/naver_map_widget.dart';
 
 class MapNaverPage extends ConsumerStatefulWidget {

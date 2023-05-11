@@ -1,9 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'package:likealocal_app_platform/core/utils/geolocator_utils.dart';
+import 'package:likealocal_app_platform/modules/home/models/google_find_path_markers.dart';
+import 'package:likealocal_app_platform/modules/home/models/map_position.dart';
 import 'package:likealocal_app_platform/modules/home/provider/google_map_provider.dart';
+import 'package:likealocal_app_platform/modules/home/provider/home_provider.dart';
 import 'package:likealocal_app_platform/modules/home/types/google_map_path_type.dart';
 import 'package:likealocal_app_platform/modules/home/utiles/google_map_utils.dart';
 
@@ -16,8 +21,8 @@ class GoogleMapWidget extends ConsumerStatefulWidget {
 
 class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
   late GoogleMapController? _googleMapController = null;
-  final Set<Marker> markers = {};
   final GoogleMapUtils googleMapUtils = GoogleMapUtils();
+  final GoogleFindPathMarkers _googleFindPathMarkers = GoogleFindPathMarkers();
 
   final TextEditingController _startController = TextEditingController();
   final TextEditingController _goalController = TextEditingController();
@@ -43,7 +48,7 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
     return TextField(
       controller: textEditingController,
       onTap: () async {
-        Marker marker = await googleMapUtils.setMapMarkerAndMove(
+        MapPosition newPosition = await googleMapUtils.setMapMarkerAndMove(
           context,
           googleMapController,
           googleMapProviderWatch,
@@ -52,20 +57,25 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
         );
 
         setState(() {});
-        markers.add(marker);
+        if (googleMapPathType == GoogleMapPathType.start) {
+          _googleFindPathMarkers.start = newPosition;
+        } else {
+          _googleFindPathMarkers.goal = newPosition;
+        }
       },
     );
   }
 
   @override
   void initState() {
-    super.initState();
     init();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final googleMapProviderWatch = ref.watch(googleMapProvider);
+    final homeProviderWatch = ref.watch(homeProvider);
     return Column(
       children: [
         googleMapPlaceInputWidget(
@@ -83,7 +93,12 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
           GoogleMapPathType.goal,
         ),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            googleMapProviderWatch.googleFindPathMarkers =
+                _googleFindPathMarkers;
+            googleMapProviderWatch.isDataSet = true;
+            homeProviderWatch.pageMove(2);
+          },
           child: const Text('길찾기'),
         ),
         Expanded(
@@ -98,7 +113,7 @@ class _GoogleMapWidgetState extends ConsumerState<GoogleMapWidget> {
               },
               initialCameraPosition:
                   CameraPosition(target: _initialPosition, zoom: 5),
-              markers: markers,
+              markers: _googleFindPathMarkers.markers,
             ),
           ),
         ),
